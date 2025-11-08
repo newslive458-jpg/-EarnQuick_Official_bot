@@ -1,0 +1,71 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EarnQuick Mini App — @EarnQuick_Official_bot</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Monetag / libtl_banner -->
+  <script src="//libtl.com/sdk.js" data-zone="10070523" data-sdk="show_10070523"></script>
+</head>
+<body>
+  <header>
+    <div class="brand">💰 EarnQuickOfficial</div>
+    <div class="conversion">5000 পয়েন্ট = <span class="taka">20 টাকা</span></div>
+  </header>
+
+  <!-- running headline -->
+  <div class="headline-wrap">
+    <div id="headline" class="headline">Loading headline...</div>
+  </div>
+
+  <main>
+    <div class="card">
+      <h2 id="greet">স্বাগতম</h2>
+      <p>তোমার ব্যালান্স: <b id="balance">0</b> পয়েন্ট</p>
+
+      <div class="btn-row">
+        <button id="watchAdBtn">🎬 Ad দেখুন (+10 পয়েন্ট)</button>
+        <button id="dailyBtn">📅 Daily Login (+10 পয়েন্ট)</button>
+      </div>
+
+      <div class="btn-row">
+        <button id="referBtn">🔗 রেফার করুন (রেফারে +250 পয়েন্ট)</button>
+        <button id="withdrawBtn">💸 Withdraw (mín 5000 পয়েন্ট)</button>
+      </div>
+
+      <p class="note">নিয়ম: 5000 পয়েন্টে উইথড্র → <b>20 টাকা</b></p>
+    </div>
+
+    <div class="card" id="adminCard" style="display:none">
+      <h3>⚙️ Admin Panel</h3>
+      <button id="loadAdmin">🔁 Load Data</button>
+      <div id="adminOutput" style="text-align:left; margin-top:12px; max-height:300px; overflow:auto"></div>
+
+      <h4>হেডলাইন সেট করুন</h4>
+      <input id="headlineInput" placeholder="নতুন হেডলাইন লিখুন" style="width:80%" />
+      <button id="setHeadlineBtn">📝 সেট করুন</button>
+    </div>
+
+    <!-- banner ad -->
+    <div id="bannerAd" class="banner-ad">
+      <script type="text/javascript">
+        atOptions = {
+          'key': '00605022df81b880d400151bfc7c2185',
+          'format': 'iframe',
+          'height': 90,
+          'width': 728,
+          'params': {}
+        };
+      </script>
+      <script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
+    </div>
+  </main>
+
+  <footer>© 2025 EarnQuickOfficial — Bot: @EarnQuick_Official_bot</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
