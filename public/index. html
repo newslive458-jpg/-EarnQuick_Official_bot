@@ -1,71 +1,152 @@
-<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EarnQuick Mini App — @EarnQuick_Official_bot</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Monetag / libtl_banner -->
-  <script src="//libtl.com/sdk.js" data-zone="10070523" data-sdk="show_10070523"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>EarnQuick Mini App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<!-- Monetag Ad SDK -->
+<script src='//libtl.com/sdk.js' data-zone='10070523' data-sdk='show_10070523'></script>
+
+<!-- Adsterra Banner Script -->
+<script type="text/javascript">
+  atOptions = {
+    'key':'00605022df81b880d400151bfc7c2185',
+    'format':'iframe',
+    'height':90,
+    'width':728,
+    'params':{}
+  };
+</script>
+<script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
+
+<style>
+body{font-family:'Poppins',sans-serif;background:#f3f6fa;margin:0;padding:0;text-align:center;}
+header{background:linear-gradient(90deg,#2c3e50,#3498db);color:white;padding:10px 0;font-weight:bold;font-size:20px;}
+.headline{background:#e3f2fd;color:#1565c0;padding:8px;font-size:14px;overflow:hidden;white-space:nowrap;}
+.scroll-text{display:inline-block;animation:scroll 15s linear infinite;}
+@keyframes scroll{0%{transform:translateX(100%);}100%{transform:translateX(-100%);}}
+.container{max-width:400px;margin:20px auto;background:white;border-radius:15px;padding:20px;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+.points{font-size:22px;margin-bottom:10px;font-weight:bold;color:#2c3e50;}
+.btn{display:block;width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;background:#3498db;color:white;font-size:16px;font-weight:bold;cursor:pointer;transition:.3s;}
+.btn:hover{background:#2980b9;}
+.banner-ad{margin:10px 0;}
+.hidden{display:none;}
+footer{font-size:13px;color:gray;margin-top:15px;}
+</style>
 </head>
 <body>
-  <header>
-    <div class="brand">💰 EarnQuickOfficial</div>
-    <div class="conversion">5000 পয়েন্ট = <span class="taka">20 টাকা</span></div>
-  </header>
+<header>💰 EarnQuick Mini App</header>
 
-  <!-- running headline -->
-  <div class="headline-wrap">
-    <div id="headline" class="headline">Loading headline...</div>
-  </div>
+<div class="headline">
+  <div class="scroll-text" id="headlineText">Loading headline...</div>
+</div>
 
-  <main>
-    <div class="card">
-      <h2 id="greet">স্বাগতম</h2>
-      <p>তোমার ব্যালান্স: <b id="balance">0</b> পয়েন্ট</p>
+<div class="banner-ad" id="topAd">
+  <script type="text/javascript">
+    atOptions = {
+      'key':'00605022df81b880d400151bfc7c2185',
+      'format':'iframe',
+      'height':90,
+      'width':728,
+      'params':{}
+    };
+  </script>
+  <script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
+</div>
 
-      <div class="btn-row">
-        <button id="watchAdBtn">🎬 Ad দেখুন (+10 পয়েন্ট)</button>
-        <button id="dailyBtn">📅 Daily Login (+10 পয়েন্ট)</button>
-      </div>
+<div class="container">
+  <div id="userInfo"></div>
+  <div class="points">Your Coins: <span id="points">0</span></div>
 
-      <div class="btn-row">
-        <button id="referBtn">🔗 রেফার করুন (রেফারে +250 পয়েন্ট)</button>
-        <button id="withdrawBtn">💸 Withdraw (mín 5000 পয়েন্ট)</button>
-      </div>
+  <button class="btn" onclick="watchAd()">🎬 Watch Ad (+10 Coins)</button>
+  <button class="btn" onclick="claimDaily()">🎁 Daily Login Bonus (+10 Coins)</button>
+  <button class="btn" onclick="copyReferral()">👥 Copy Referral Link (+250 Coins on Success)</button>
+  <button class="btn" onclick="withdraw()">💵 Withdraw</button>
+  <button class="btn hidden" id="adminBtn" onclick="openAdmin()">🛠 Admin Panel</button>
+</div>
 
-      <p class="note">নিয়ম: 5000 পয়েন্টে উইথড্র → <b>20 টাকা</b></p>
-    </div>
+<div class="banner-ad" id="bottomAd">
+  <script type="text/javascript">
+    atOptions = {
+      'key':'00605022df81b880d400151bfc7c2185',
+      'format':'iframe',
+      'height':90,
+      'width':728,
+      'params':{}
+    };
+  </script>
+  <script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
+</div>
 
-    <div class="card" id="adminCard" style="display:none">
-      <h3>⚙️ Admin Panel</h3>
-      <button id="loadAdmin">🔁 Load Data</button>
-      <div id="adminOutput" style="text-align:left; margin-top:12px; max-height:300px; overflow:auto"></div>
+<footer>© 2025 EarnQuick Official | All Rights Reserved</footer>
 
-      <h4>হেডলাইন সেট করুন</h4>
-      <input id="headlineInput" placeholder="নতুন হেডলাইন লিখুন" style="width:80%" />
-      <button id="setHeadlineBtn">📝 সেট করুন</button>
-    </div>
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+const user = tg.initDataUnsafe?.user || { id:"guest", first_name:"Guest" };
+const ADMIN_ID = 8145444675;
 
-    <!-- banner ad -->
-    <div id="bannerAd" class="banner-ad">
-      <script type="text/javascript">
-        atOptions = {
-          'key': '00605022df81b880d400151bfc7c2185',
-          'format': 'iframe',
-          'height': 90,
-          'width': 728,
-          'params': {}
-        };
-      </script>
-      <script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
-    </div>
-  </main>
+document.getElementById('userInfo').innerHTML = `👤 ${user.first_name}`;
+if(user.id == ADMIN_ID){ document.getElementById('adminBtn').classList.remove('hidden'); }
 
-  <footer>© 2025 EarnQuickOfficial — Bot: @EarnQuick_Official_bot</footer>
+let points = 0;
 
-  <script src="script.js"></script>
+// Load headline from server
+fetch("/headline").then(res=>res.json()).then(data=>{
+  document.getElementById("headlineText").innerText = data.text || "";
+});
+
+// Helper: Update displayed points
+function updatePoints(p){
+  points += p;
+  document.getElementById('points').innerText = points;
+}
+
+// --- Watch Ad & Reward Coins ---
+function watchAd(){
+  // Monetag SDK
+  show_10070523().then(()=>{
+    fetch("/watch-ad",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({userId:user.id})})
+    .then(res=>res.json()).then(data=>{
+      points = data.balance;
+      document.getElementById('points').innerText = points;
+      alert("✅ Coins added after successful ad!");
+    });
+  }).catch(()=>{alert("❌ Ad failed or skipped.");});
+}
+
+// Daily Bonus
+function claimDaily(){
+  fetch("/claim-daily",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({userId:user.id})})
+  .then(res=>res.json()).then(data=>{
+    if(data.ok){ updatePoints(data.bonus); alert("🎉 Daily bonus added!"); }
+    else alert(data.message);
+  });
+}
+
+// Referral Link Copy
+function copyReferral(){
+  const refLink = `https://t.me/EarnQuick_Official_bot?start=${user.id}`;
+  navigator.clipboard.writeText(refLink);
+  alert("🔗 Referral link copied! Coins will be added when new user registers and watches ad.");
+}
+
+// Withdraw with multiple methods
+function withdraw(){
+  fetch("/withdraw",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({userId:user.id})})
+  .then(res=>res.json()).then(data=>{
+    if(data.ok){
+      alert(`✅ Withdraw requested: ${data.amount_points} points = ${data.amount_taka}৳\nMethods: Bkash, Nagad, Rocket, Crypto`);
+      points -= data.amount_points;
+      document.getElementById('points').innerText = points;
+    } else alert(data.message);
+  });
+}
+
+// Admin
+function openAdmin(){ tg.openTelegramLink("https://t.me/najmulhoqueforhad"); }
+</script>
 </body>
 </html>
