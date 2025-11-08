@@ -2,27 +2,28 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 
-// Neon-এর SSL প্রয়োজন মেটাতে এটি সেট করা আবশ্যক
+// Production (Render) পরিবেশে SSL ব্যবহার করা আবশ্যক
 const isProduction = process.env.NODE_ENV === 'production';
 
 const connectionConfig = {
-    connectionString: process.env.DATABASE_URL,
-    ssl: isProduction ? { rejectUnauthorized: false } : false,
+    // Render-এ সেট করা DATABASE_URL ভ্যারিয়েবল ব্যবহার করা হচ্ছে
+    connectionString: process.env.DATABASE_URL, 
+    // Production-এ SSL বাধ্যতামূলক; rejectUnauthorized: false ব্যবহার করা হচ্ছে
+    ssl: isProduction ? { rejectUnauthorized: false } : false, 
 };
 
-// যখন সংযোগ স্ট্রিং এ 'pooler' থাকে, তখন এই কনফিগারেশন প্রয়োজন
+// Neon pooler ব্যবহার করার সময় pg-pool-এর কনফিগারেশন Override করা প্রয়োজন
 if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('pooler')) {
-  // 'pg' লাইব্রেরি যখন pooler ব্যবহার করে, তখন connection pooling বন্ধ রাখতে হয়,
-  // কারণ Neon pooler নিজেই connection pool পরিচালনা করে।
+  // সর্বোচ্চ ১টি সংযোগ সেট করা হলো, কারণ Neon pooler নিজেই সংযোগ পরিচালনা করে
   connectionConfig.max = 1; 
 }
 
 
 const pool = new Pool(connectionConfig);
 
-// সংযোগ ত্রুটিগুলির জন্য একটি লিসেনার যুক্ত করা হলো
+// সংযোগ ত্রুটিগুলির জন্য লিসেনার
 pool.on('error', (err) => {
-    console.error('Unexpected error on idle client:', err.message);
+    console.error('❌ Unexpected DB error:', err.message);
     // সার্ভারকে বন্ধ করে দিন যাতে Render এটি পুনরায় চালু করে
     process.exit(1); 
 });
