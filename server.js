@@ -1,7 +1,8 @@
 // server.js
 import express from "express";
 import cors from "cors";
-import pool from "./db.js";
+// db.js ফাইলটি অবশ্যই সঠিক PostgreSQL পুল তৈরি করবে এবং DATABASE_URL ব্যবহার করবে।
+import pool from "./db.js"; 
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -9,9 +10,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// serve static frontend from /public
+// Path কনফিগারেশন (ESM মডিউলের জন্য)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// serve static frontend from /public
+// এটি public ফোল্ডারের সব স্ট্যাটিক ফাইল (index.html, script.js, css) পরিবেশন করবে।
 app.use(express.static(path.join(__dirname, "public")));
 
 // ----- CONFIG -----
@@ -28,43 +32,52 @@ function pointsToTaka(points) {
 
 // ----- Initialize tables if not exist -----
 (async () => {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id BIGINT PRIMARY KEY,
-      name TEXT,
-      balance BIGINT DEFAULT 0,
-      referrer BIGINT,
-      last_daily TIMESTAMP,
-      created_at TIMESTAMP DEFAULT NOW(),
-      ref_clicks BIGINT DEFAULT 0,
-      ref_success BIGINT DEFAULT 0
-    );
-
-    CREATE TABLE IF NOT EXISTS withdraws (
-      id SERIAL PRIMARY KEY,
-      user_id BIGINT,
-      amount_points BIGINT,
-      amount_taka NUMERIC(10,2),
-      status TEXT DEFAULT 'pending',
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-
-    CREATE TABLE IF NOT EXISTS headlines (
-      id SERIAL PRIMARY KEY,
-      text TEXT,
-      updated_at TIMESTAMP DEFAULT NOW()
-    );
-  `);
-
-  // ensure at least one headline exists
-  const r = await pool.query("SELECT count(*) FROM headlines");
-  if (Number(r.rows[0].count) === 0) {
-    await pool.query(
-      "INSERT INTO headlines (text) VALUES ($1)",
-      ["Earn 10 Points Per Ad | 250 Points Per Referral | Daily Bonus 10 Points | 5000 Points = 20 টাকা"]
-    );
+  try {
+    // এই ব্লকটি ডেটাবেস সংযোগ না হওয়া পর্যন্ত সার্ভার স্টার্ট হতে দেবে না।
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id BIGINT PRIMARY KEY,
+        name TEXT,
+        balance BIGINT DEFAULT 0,
+        referrer BIGINT,
+        last_daily TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        ref_clicks BIGINT DEFAULT 0,
+        ref_success BIGINT DEFAULT 0
+      );
+  
+      CREATE TABLE IF NOT EXISTS withdraws (
+        id SERIAL PRIMARY KEY,
+        user_id BIGINT,
+        amount_points BIGINT,
+        amount_taka NUMERIC(10,2),
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+  
+      CREATE TABLE IF NOT EXISTS headlines (
+        id SERIAL PRIMARY KEY,
+        text TEXT,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+  
+    // ensure at least one headline exists
+    const r = await pool.query("SELECT count(*) FROM headlines");
+    if (Number(r.rows[0].count) === 0) {
+      await pool.query(
+        "INSERT INTO headlines (text) VALUES ($1)",
+        ["Earn 10 Points Per Ad | 250 Points Per Referral | Daily Bonus 10 Points | 5000 Points = 20 টাকা"]
+      );
+    }
+    console.log("Database initialized successfully.");
+  } catch (err) {
+    // এই ব্লকটি আপনার ENOTFOUND ত্রুটির উৎস
+    console.error("DB init error: Database connection failed.", err.message);
+    // যদি DB সংযোগ না হয়, তবে অ্যাপ্লিকেশন ক্র্যাশ করবে, যা ঠিক।
+    process.exit(1); 
   }
-})().catch(err => console.error("DB init error:", err));
+})();
 
 // ----------------- API ROUTES -----------------
 
@@ -193,6 +206,11 @@ app.post("/withdraw", async (req, res) => {
       "INSERT INTO withdraws (user_id, amount_points, amount_taka, status) VALUES ($1, $2, $3, 'pending')",
       [userId, WITHDRAW_POINTS, taka]
     );
+    
+    // ব্যালান্স থেকে পয়েন্ট কাটা হয়নি, কারণ ফ্রন্ট-এন্ড থেকে ব্যালান্স আপডেটের জন্য আলাদা রিকোয়েস্ট যেতে পারে।
+    // তবে, সাধারণত Withdraw রিকোয়েস্ট করার সাথে সাথেই ব্যালান্স থেকে পয়েন্ট কেটে নেওয়া হয়।
+    // আপনার কোডে এটি নেই, যা একটি সমস্যা হতে পারে। আপনি এখানে এই লাইনটি যোগ করতে পারেন:
+    // await pool.query("UPDATE users SET balance = balance - $1 WHERE id = $2", [WITHDRAW_POINTS, userId]); 
 
     res.json({ ok: true, amount_points: WITHDRAW_POINTS, amount_taka: taka, message: "Withdraw request submitted" });
   } catch (err) {
@@ -241,6 +259,7 @@ app.post("/admin/approve-withdraw", async (req, res) => {
     if (wd.status !== "pending") return res.json({ ok: false, message: "Already processed" });
 
     // deduct points & mark approved
+    // Note: Withdraw রিকোয়েস্ট করার সময় পয়েন্ট না কাটা হলে, এখানে কাটা হচ্ছে।
     await pool.query("UPDATE users SET balance = balance - $1 WHERE id = $2", [wd.amount_points, wd.user_id]);
     await pool.query("UPDATE withdraws SET status = 'approved' WHERE id = $1", [withdrawId]);
 
@@ -251,7 +270,7 @@ app.post("/admin/approve-withdraw", async (req, res) => {
   }
 });
 
-// root -> serve index
+// root -> serve index (এই রুটটি নিশ্চিত করবে যে public/index.html পরিবেশিত হচ্ছে)
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
