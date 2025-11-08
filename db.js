@@ -8,7 +8,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const connectionConfig = {
     // Render-এ সেট করা DATABASE_URL ভ্যারিয়েবল ব্যবহার করা হচ্ছে
     connectionString: process.env.DATABASE_URL, 
-    // Production-এ SSL বাধ্যতামূলক; rejectUnauthorized: false ব্যবহার করা হচ্ছে
+    // SSL কনফিগারেশন যোগ করা হলো
     ssl: isProduction ? { rejectUnauthorized: false } : false, 
 };
 
@@ -18,13 +18,11 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('pooler')) {
   connectionConfig.max = 1; 
 }
 
-
 const pool = new Pool(connectionConfig);
 
 // সংযোগ ত্রুটিগুলির জন্য লিসেনার
 pool.on('error', (err) => {
     console.error('❌ Unexpected DB error:', err.message);
-    // সার্ভারকে বন্ধ করে দিন যাতে Render এটি পুনরায় চালু করে
     process.exit(1); 
 });
 
