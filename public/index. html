@@ -5,10 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>EarnQuick Mini App — @EarnQuick_Official_bot</title>
 
-<!-- Telegram WebApp SDK -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<!-- Monetag SDK (rewarded) -->
 <script src='//libtl.com/sdk.js' data-zone='10070523' data-sdk='show_10070523'></script>
 
 <style>
@@ -31,6 +29,12 @@
   /* admin output */
   #adminOutput pre { white-space:pre-wrap; font-size:13px; background:#f8f9fb; padding:8px; border-radius:6px; }
   @media(min-width:600px){ .btn { flex:1 1 45%; } }
+
+  /* *** নতুন অ্যাড স্টাইল *** */
+  /* এই স্টাইলটি নিশ্চিত করবে যে অ্যাডটি স্ক্রিনের প্রস্থের সাথে মানিয়ে যাবে */
+  .adsterra-banner { max-width: 100%; overflow: hidden; } 
+  .adsterra-banner iframe { max-width: 100% !important; height: auto !important; }
+
 </style>
 </head>
 <body>
@@ -42,12 +46,16 @@
 <div class="headline-wrap"><div id="headline" class="headline">Loading headline...</div></div>
 
 <main>
-  <!-- Top banner (Adsterra) -->
   <div class="banner-ad" id="topBanner">
-    <script type="text/javascript">
-      atOptions = {'key':'00605022df81b880d400151bfc7c2185','format':'iframe','height':90,'width':728,'params':{}};
-    </script>
-    <script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
+    <div class="adsterra-banner">
+      <script type="text/javascript">
+        // Ad Options পরিবর্তন করে 320x50 (মোবাইল সাইজ) বা 728x90 (ডেস্কটপ) করা হয়েছে
+        // আপনি যদি Adsterra থেকে "Responsive" বা "Native Banner" কোড নেন, তাহলে আরও ভালো হবে।
+        // আপাতত ফিক্সড কোডের মধ্যে পরিবর্তন করা হলো:
+        atOptions = {'key':'00605022df81b880d400151bfc7c2185','format':'iframe','height':50,'width':320,'params':{}};
+      </script>
+      <script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
+    </div>
   </div>
 
   <div class="card">
@@ -67,7 +75,6 @@
     </div>
   </div>
 
-  <!-- Admin card -->
   <div id="adminCard" class="card" style="display:none">
     <h3>⚙️ Admin Panel</h3>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -83,12 +90,13 @@
     <div id="adminOutput" style="margin-top:12px"></div>
   </div>
 
-  <!-- Bottom banner -->
   <div class="banner-ad" id="bottomBanner">
-    <script type="text/javascript">
-      atOptions = {'key':'00605022df81b880d400151bfc7c2185','format':'iframe','height':90,'width':728,'params':{}};
-    </script>
-    <script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
+    <div class="adsterra-banner">
+      <script type="text/javascript">
+        atOptions = {'key':'00605022df81b880d400151bfc7c2185','format':'iframe','height':50,'width':320,'params':{}};
+      </script>
+      <script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
+    </div>
   </div>
 </main>
 
