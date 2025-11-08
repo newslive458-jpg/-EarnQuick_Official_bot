@@ -1,0 +1,22 @@
+/* public/style.css */
+body { font-family: 'Noto Sans', Arial, sans-serif; background:#f3f6fb; margin:0; color:#222; }
+header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#007bff; color:#fff; }
+.brand { font-weight:700; font-size:18px; }
+.conversion { background:rgba(255,255,255,0.15); padding:6px 10px; border-radius:6px; font-weight:600; }
+
+.headline-wrap { background:#fff3cd; border-bottom:1px solid #f0e6b8; padding:8px 0; overflow:hidden; }
+.headline { display:inline-block; white-space:nowrap; animation: ticker 18s linear infinite; font-weight:600; padding-left:100%; }
+@keyframes ticker { 0% { transform: translateX(0%);} 100% { transform: translateX(-100%);} }
+
+main { padding:16px; max-width:720px; margin:12px auto; }
+.card { background:#fff; padding:18px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.06); margin-bottom:12px; }
+.btn-row { display:flex; gap:10px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
+button { background:#007bff; color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-size:15px; }
+button.secondary { background:#6c757d; }
+.banner-ad { margin-top:12px; text-align:center; }
+
+/* admin output */
+#adminOutput pre { white-space:pre-wrap; word-wrap:break-word; font-size:13px; background:#f8f9fb; padding:8px; border-radius:6px; }
+
+footer { text-align:center; padding:10px; color:#666; font-size:13px; }
+.note { color:#555; margin-top:8px; font-weight:600; }
