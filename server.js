@@ -1,6 +1,7 @@
-// server.js (সংশোধিত - ENOENT ফিক্স সহ)
+// server.js (চূড়ান্তভাবে সংশোধিত: ENOENT ফিক্সড)
 import express from "express";
 import cors from "cors";
+// db.js ফাইলটি অবশ্যই সঠিক PostgreSQL পুল তৈরি করবে এবং DATABASE_URL ব্যবহার করবে।
 import pool from "./db.js"; 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -18,7 +19,7 @@ const __dirname = path.dirname(__filename);
 // *************************************************************************
 
 // serve static frontend from /public (../public ব্যবহার করে)
-// Render-এ ENOENT ত্রুটি এড়াতে এটি প্রায়ই কার্যকর
+// Render-এ ENOENT ত্রুটি এড়াতে এটি আবশ্যক, কারণ public ফোল্ডারটি সাধারণত এক ধাপ ওপরে থাকে।
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 // root -> serve index (../public/index.html ব্যবহার করে)
@@ -27,7 +28,7 @@ app.get("/", (req, res) => {
 });
 
 // *************************************************************************
-// ******************* API ROUTES (বাকি সব আপনার আগের কোড) *****************
+// ******************* API ROUTES (আপনার পূর্বের কোড) *********************
 // *************************************************************************
 
 // ----- CONFIG -----
@@ -45,7 +46,7 @@ function pointsToTaka(points) {
 // ----- Initialize tables if not exist -----
 (async () => {
   try {
-    // এই ব্লকটি ডেটাবেস সংযোগ না হওয়া পর্যন্ত সার্ভার স্টার্ট হতে দেবে না।
+    // যদি DB সংযোগ না হয়, তবে এই ব্লকটি চলতে পারবে না এবং সার্ভার ক্র্যাশ করবে।
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id BIGINT PRIMARY KEY,
@@ -84,7 +85,7 @@ function pointsToTaka(points) {
     }
     console.log("Database initialized successfully.");
   } catch (err) {
-    // আপনার ENOTFOUND বা Password Auth ত্রুটির উৎস
+    // যদি DB সংযোগ ব্যর্থ হয় (যেমন পাসওয়ার্ড ভুল), সার্ভার বন্ধ করুন
     console.error("DB init error: Database connection failed.", err.message);
     process.exit(1); 
   }
@@ -218,8 +219,7 @@ app.post("/withdraw", async (req, res) => {
       [userId, WITHDRAW_POINTS, taka]
     );
     
-    // ব্যালান্স থেকে পয়েন্ট কাটা হয়নি: এটি আপনার ইচ্ছাকৃত হতে পারে।
-    // যদি আপনি চান যে Withdraw রিকোয়েস্ট করার সাথে সাথেই পয়েন্ট কেটে নেওয়া হোক:
+    // Note: আপনি চাইলে এখানে ব্যালান্স থেকে পয়েন্ট কেটে নিতে পারেন।
     // await pool.query("UPDATE users SET balance = balance - $1 WHERE id = $2", [WITHDRAW_POINTS, userId]); 
 
     res.json({ ok: true, amount_points: WITHDRAW_POINTS, amount_taka: taka, message: "Withdraw request submitted" });
@@ -269,7 +269,6 @@ app.post("/admin/approve-withdraw", async (req, res) => {
     if (wd.status !== "pending") return res.json({ ok: false, message: "Already processed" });
 
     // deduct points & mark approved
-    // Note: Withdraw রিকোয়েস্ট করার সময় পয়েন্ট না কাটা হলে, এখানে কাটা হচ্ছে।
     await pool.query("UPDATE users SET balance = balance - $1 WHERE id = $2", [wd.amount_points, wd.user_id]);
     await pool.query("UPDATE withdraws SET status = 'approved' WHERE id = $1", [withdrawId]);
 
@@ -279,6 +278,7 @@ app.post("/admin/approve-withdraw", async (req, res) => {
     res.status(500).json({ error: "server" });
   }
 });
+
 
 // start
 const PORT = process.env.PORT || 3000;
