@@ -8,7 +8,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const connectionConfig = {
     // Render-এ সেট করা DATABASE_URL ভ্যারিয়েবল ব্যবহার করা হচ্ছে
     connectionString: process.env.DATABASE_URL, 
-    // SSL কনফিগারেশন যোগ করা হলো
+    // SSL কনফিগারেশন যোগ করা হলো (Render-এর জন্য আবশ্যক)
     ssl: isProduction ? { rejectUnauthorized: false } : false, 
 };
 
@@ -22,7 +22,8 @@ const pool = new Pool(connectionConfig);
 
 // সংযোগ ত্রুটিগুলির জন্য লিসেনার
 pool.on('error', (err) => {
-    console.error('❌ Unexpected DB error:', err.message);
+    console.error('❌ Unexpected DB error: Database connection failed. Please check DATABASE_URL in Render.', err.message);
+    // সার্ভারকে বন্ধ করে দিন যাতে Render এটি পুনরায় চালু করে
     process.exit(1); 
 });
 
