@@ -1,7 +1,6 @@
-// server.js
+// server.js (সংশোধিত - ENOENT ফিক্স সহ)
 import express from "express";
 import cors from "cors";
-// db.js ফাইলটি অবশ্যই সঠিক PostgreSQL পুল তৈরি করবে এবং DATABASE_URL ব্যবহার করবে।
 import pool from "./db.js"; 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -14,9 +13,22 @@ app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// serve static frontend from /public
-// এটি public ফোল্ডারের সব স্ট্যাটিক ফাইল (index.html, script.js, css) পরিবেশন করবে।
-app.use(express.static(path.join(__dirname, "public")));
+// *************************************************************************
+// ******************* ENOENT ত্রুটি সমাধানের জন্য সংশোধন *******************
+// *************************************************************************
+
+// serve static frontend from /public (../public ব্যবহার করে)
+// Render-এ ENOENT ত্রুটি এড়াতে এটি প্রায়ই কার্যকর
+app.use(express.static(path.join(__dirname, "..", "public")));
+
+// root -> serve index (../public/index.html ব্যবহার করে)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "index.html"));
+});
+
+// *************************************************************************
+// ******************* API ROUTES (বাকি সব আপনার আগের কোড) *****************
+// *************************************************************************
 
 // ----- CONFIG -----
 const ADMIN_ID = 8145444675;
@@ -72,9 +84,8 @@ function pointsToTaka(points) {
     }
     console.log("Database initialized successfully.");
   } catch (err) {
-    // এই ব্লকটি আপনার ENOTFOUND ত্রুটির উৎস
+    // আপনার ENOTFOUND বা Password Auth ত্রুটির উৎস
     console.error("DB init error: Database connection failed.", err.message);
-    // যদি DB সংযোগ না হয়, তবে অ্যাপ্লিকেশন ক্র্যাশ করবে, যা ঠিক।
     process.exit(1); 
   }
 })();
@@ -207,9 +218,8 @@ app.post("/withdraw", async (req, res) => {
       [userId, WITHDRAW_POINTS, taka]
     );
     
-    // ব্যালান্স থেকে পয়েন্ট কাটা হয়নি, কারণ ফ্রন্ট-এন্ড থেকে ব্যালান্স আপডেটের জন্য আলাদা রিকোয়েস্ট যেতে পারে।
-    // তবে, সাধারণত Withdraw রিকোয়েস্ট করার সাথে সাথেই ব্যালান্স থেকে পয়েন্ট কেটে নেওয়া হয়।
-    // আপনার কোডে এটি নেই, যা একটি সমস্যা হতে পারে। আপনি এখানে এই লাইনটি যোগ করতে পারেন:
+    // ব্যালান্স থেকে পয়েন্ট কাটা হয়নি: এটি আপনার ইচ্ছাকৃত হতে পারে।
+    // যদি আপনি চান যে Withdraw রিকোয়েস্ট করার সাথে সাথেই পয়েন্ট কেটে নেওয়া হোক:
     // await pool.query("UPDATE users SET balance = balance - $1 WHERE id = $2", [WITHDRAW_POINTS, userId]); 
 
     res.json({ ok: true, amount_points: WITHDRAW_POINTS, amount_taka: taka, message: "Withdraw request submitted" });
@@ -268,11 +278,6 @@ app.post("/admin/approve-withdraw", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "server" });
   }
-});
-
-// root -> serve index (এই রুটটি নিশ্চিত করবে যে public/index.html পরিবেশিত হচ্ছে)
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // start
