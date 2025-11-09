@@ -1,7 +1,6 @@
-// server.js (চূড়ান্তভাবে সংশোধিত: ENOENT ফিক্সড)
+// server.js (চূড়ান্তভাবে সংশোধিত: Path.resolve ব্যবহার করে ENOENT ফিক্সড)
 import express from "express";
 import cors from "cors";
-// db.js ফাইলটি অবশ্যই সঠিক PostgreSQL পুল তৈরি করবে এবং DATABASE_URL ব্যবহার করবে।
 import pool from "./db.js"; 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -15,16 +14,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // *************************************************************************
-// ******************* ENOENT ত্রুটি সমাধানের জন্য সংশোধন *******************
+// ******************* ENOENT ত্রুটি সমাধানের জন্য চূড়ান্ত সংশোধন *******************
 // *************************************************************************
 
-// serve static frontend from /public (../public ব্যবহার করে)
-// Render-এ ENOENT ত্রুটি এড়াতে এটি আবশ্যক।
-app.use(express.static(path.join(__dirname, "..", "public")));
+// রুট ডিরেক্টরির বাইরে থাকা 'public' ফোল্ডারটিকে নির্দেশ করা
+// এটি সার্ভার ফাইল থেকে এক ধাপ পিছনে গিয়ে 'public' ফোল্ডারে যায়, যা Render-এর জন্য নির্ভরযোগ্য।
+const publicPath = path.resolve(__dirname, '..', 'public'); 
 
-// root -> serve index (../public/index.html ব্যবহার করে)
+// serve static frontend from /public
+app.use(express.static(publicPath));
+
+// root -> serve index 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "..", "public", "index.html"));
+  // index.html ফাইলটির সম্পূর্ণ পাথ
+  res.sendFile(path.join(publicPath, "index.html"));
 });
 
 // *************************************************************************
@@ -85,7 +88,7 @@ function pointsToTaka(points) {
     }
     console.log("Database initialized successfully.");
   } catch (err) {
-    // যদি DB সংযোগ ব্যর্থ হয় (যেমন পাসওয়ার্ড ভুল), সার্ভার বন্ধ করুন
+    // যদি DB সংযোগ ব্যর্থ হয়, সার্ভার বন্ধ করুন
     console.error("DB init error: Database connection failed.", err.message);
     process.exit(1); 
   }
