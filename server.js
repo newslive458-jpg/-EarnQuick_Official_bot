@@ -19,7 +19,7 @@ const __dirname = path.dirname(__filename);
 // *************************************************************************
 
 // serve static frontend from /public (../public ব্যবহার করে)
-// Render-এ ENOENT ত্রুটি এড়াতে এটি আবশ্যক, কারণ public ফোল্ডারটি সাধারণত এক ধাপ ওপরে থাকে।
+// Render-এ ENOENT ত্রুটি এড়াতে এটি আবশ্যক।
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 // root -> serve index (../public/index.html ব্যবহার করে)
@@ -46,7 +46,7 @@ function pointsToTaka(points) {
 // ----- Initialize tables if not exist -----
 (async () => {
   try {
-    // যদি DB সংযোগ না হয়, তবে এই ব্লকটি চলতে পারবে না এবং সার্ভার ক্র্যাশ করবে।
+    // এই ব্লকটি ডেটাবেস সংযোগ না হওয়া পর্যন্ত সার্ভার স্টার্ট হতে দেবে না।
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id BIGINT PRIMARY KEY,
