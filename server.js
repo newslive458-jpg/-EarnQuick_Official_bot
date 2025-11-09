@@ -1,263 +1,254 @@
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>EarnQuick Mini App — @EarnQuick_Official_bot</title>
+// server.js (চূড়ান্তভাবে সংশোধিত: ENOENT ফিক্সড)
+import express from "express";
+import cors from "cors";
+import pool from "./db.js"; 
+import path from "path";
+import { fileURLToPath } from "url";
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-<script src='//libtl.com/sdk.js' data-zone='10070523' data-sdk='show_10070523'></script>
+// Path কনফিগারেশন
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-<style>
-  /* Responsive, mobile friendly styles */
-  body { font-family: 'Noto Sans', Arial, sans-serif; margin:0; background:#f3f6fb; color:#222; }
-  header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#007bff; color:#fff; position:sticky; top:0; z-index:10; }
-  .brand { font-weight:700; font-size:18px; }
-  .conversion { background:rgba(255,255,255,0.12); padding:6px 10px; border-radius:6px; font-weight:600; font-size:13px; }
-  .headline-wrap { background:#fff3cd; padding:8px 0; overflow:hidden; border-bottom:1px solid #f0e6b8; }
-  .headline { display:inline-block; white-space:nowrap; padding-left:100%; animation: ticker 18s linear infinite; font-weight:600; font-size:14px; color:#1565c0; }
-  @keyframes ticker { 0% { transform: translateX(100%);} 100% { transform: translateX(-100%);} }
-  main { padding:14px; max-width:720px; margin:10px auto; }
-  .card { background:#fff; padding:16px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.06); margin-bottom:12px; }
-  .row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-  .btn { flex:1 1 100%; padding:12px; border-radius:10px; border:none; font-size:16px; color:#fff; background:linear-gradient(90deg,#3498db,#1abc9c); cursor:pointer; }
-  .btn.secondary { background:#6c757d; }
-  .stats { display:flex; gap:12px; justify-content:center; margin-top:8px; font-weight:600; }
-  .banner-ad { text-align:center; margin-top:12px; }
-  footer { text-align:center; padding:10px; color:#666; font-size:13px; margin-bottom:20px; }
-  /* admin output */
-  #adminOutput pre { white-space:pre-wrap; font-size:13px; background:#f8f9fb; padding:8px; border-radius:6px; }
-  @media(min-width:600px){ .btn { flex:1 1 45%; } }
+// *************************************************************************
+// *** ENOENT ফিক্স: রুট ডিরেক্টরিকেই স্ট্যাটিক ডিরেক্টরি হিসেবে ব্যবহার করা হচ্ছে। ***
+// *************************************************************************
+app.use(express.static(__dirname)); 
 
-  /* *** নতুন অ্যাড স্টাইল *** */
-  /* এই স্টাইলটি নিশ্চিত করবে যে অ্যাডটি স্ক্রিনের প্রস্থের সাথে মানিয়ে যাবে */
-  .adsterra-banner { max-width: 100%; overflow: hidden; } 
-  .adsterra-banner iframe { max-width: 100% !important; height: auto !important; }
+// root -> serve index 
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html")); 
+});
 
-</style>
-</head>
-<body>
-<header>
-  <div class="brand">💰 EarnQuickOfficial</div>
-  <div class="conversion">5000 পয়েন্ট = 20 টাকা</div>
-</header>
+// *************************************************************************
+// ******************* API ROUTES *********************
+// *************************************************************************
 
-<div class="headline-wrap"><div id="headline" class="headline">Loading headline...</div></div>
-
-<main>
-  <div class="banner-ad" id="topBanner">
-    <div class="adsterra-banner">
-      <script type="text/javascript">
-        // Ad Options পরিবর্তন করে 320x50 (মোবাইল সাইজ) বা 728x90 (ডেস্কটপ) করা হয়েছে
-        // আপনি যদি Adsterra থেকে "Responsive" বা "Native Banner" কোড নেন, তাহলে আরও ভালো হবে।
-        // আপাতত ফিক্সড কোডের মধ্যে পরিবর্তন করা হলো:
-        atOptions = {'key':'00605022df81b880d400151bfc7c2185','format':'iframe','height':50,'width':320,'params':{}};
-      </script>
-      <script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3 id="greet">স্বাগতম</h3>
-    <p>তোমার ব্যালান্স: <b id="balance">0</b> পয়েন্ট</p>
-
-    <div class="row">
-      <button id="watchAdBtn" class="btn">🎬 Watch Ad (+10)</button>
-      <button id="dailyBtn" class="btn secondary">📅 Daily (+10)</button>
-      <button id="referBtn" class="btn">🔗 Copy Referral</button>
-      <button id="withdrawBtn" class="btn">💸 Withdraw</button>
-    </div>
-
-    <div class="stats">
-      <div>Referrals: <span id="refSuccess">0</span></div>
-      <div>Clicks: <span id="refClicks">0</span></div>
-    </div>
-  </div>
-
-  <div id="adminCard" class="card" style="display:none">
-    <h3>⚙️ Admin Panel</h3>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button id="loadAdmin" class="btn">🔁 Load Data</button>
-      <button id="refreshHeadline" class="btn secondary">🔄 Reload Headline</button>
-    </div>
-
-    <div style="margin-top:12px">
-      <input id="headlineInput" placeholder="নতুন হেডলাইন লিখুন" style="width:70%;padding:8px;border-radius:6px;border:1px solid #ddd" />
-      <button id="setHeadlineBtn" class="btn">📝 Set Headline</button>
-    </div>
-
-    <div id="adminOutput" style="margin-top:12px"></div>
-  </div>
-
-  <div class="banner-ad" id="bottomBanner">
-    <div class="adsterra-banner">
-      <script type="text/javascript">
-        atOptions = {'key':'00605022df81b880d400151bfc7c2185','format':'iframe','height':50,'width':320,'params':{}};
-      </script>
-      <script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
-    </div>
-  </div>
-</main>
-
-<footer>© 2025 EarnQuickOfficial — Bot: @EarnQuick_Official_bot</footer>
-
-<script>
-/* Frontend logic */
-const tg = window.Telegram.WebApp;
-tg.expand();
-tg.MainButton.setText("📋 Menu");
-tg.MainButton.show();
-
+// ----- CONFIG (আপনার আগের সেটিংস) -----
 const ADMIN_ID = 8145444675;
 const AD_REWARD = 10;
+const REF_BONUS = 250;
+const DAILY_BONUS = 10;
+const WITHDRAW_POINTS = 5000;
 
-const user = tg.initDataUnsafe?.user || { id: null, first_name: "Guest" };
-const userId = user.id || `guest_${Math.floor(Math.random()*1000000)}`;
-const userName = user.first_name || "Guest";
-
-const balanceEl = document.getElementById("balance");
-const greetEl = document.getElementById("greet");
-const refSuccessEl = document.getElementById("refSuccess");
-const refClicksEl = document.getElementById("refClicks");
-const adminCard = document.getElementById("adminCard");
-
-greetEl.innerText = `স্বাগতম, ${userName}`;
-if (user.id && Number(user.id) === ADMIN_ID) adminCard.style.display = "block";
-
-// load headline
-async function loadHeadline(){
-  try {
-    const r = await fetch("/headline");
-    const j = await r.json();
-    document.getElementById("headline").innerText = j.text || "";
-  } catch (e) { console.error(e); }
+// points -> taka: 5000 -> 20
+function pointsToTaka(points) {
+  return Number(((points / 5000) * 20).toFixed(2));
 }
-loadHeadline();
 
-// load user info
-async function loadUser(){
+// ----- Initialize tables if not exist -----
+(async () => {
   try {
-    const r = await fetch(`/user/${userId}`);
-    const j = await r.json();
-    balanceEl.innerText = j.balance || 0;
-    refSuccessEl.innerText = j.ref_success || 0;
-    refClicksEl.innerText = j.ref_clicks || 0;
-  } catch (e) { console.error(e); }
-}
-loadUser();
-
-// register (if referral present)
-(function tryRegisterFromUrl(){
-  const params = new URLSearchParams(window.location.search);
-  const ref = params.get("ref") || null;
-  if (ref) {
-    // track click immediately and call register when app opens (server-side)
-    fetch("/ref-click", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ refId: ref }) }).catch(()=>{});
-    // store ref in localStorage so when user completes register flow we can send it
-    localStorage.setItem("ref_from", ref);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id BIGINT PRIMARY KEY,
+        name TEXT,
+        balance BIGINT DEFAULT 0,
+        referrer BIGINT,
+        last_daily TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        ref_clicks BIGINT DEFAULT 0,
+        ref_success BIGINT DEFAULT 0
+      );
+  
+      CREATE TABLE IF NOT EXISTS withdraws (
+        id SERIAL PRIMARY KEY,
+        user_id BIGINT,
+        amount_points BIGINT,
+        amount_taka NUMERIC(10,2),
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+  
+      CREATE TABLE IF NOT EXISTS headlines (
+        id SERIAL PRIMARY KEY,
+        text TEXT,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+  
+    const r = await pool.query("SELECT count(*) FROM headlines");
+    if (Number(r.rows[0].count) === 0) {
+      await pool.query(
+        "INSERT INTO headlines (text) VALUES ($1)",
+        ["Earn 10 Points Per Ad | 250 Points Per Referral | Daily Bonus 10 Points | 5000 Points = 20 টাকা"]
+      );
+    }
+    console.log("Database initialized successfully.");
+  } catch (err) {
+    console.error("DB init error: Database connection failed.", err.message);
+    process.exit(1); 
   }
-
-  // call register on server to process new user and referral once
-  const storedRef = localStorage.getItem("ref_from");
-  fetch("/register", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ userId, name: userName, referral: storedRef }) })
-    .then(()=> {
-      localStorage.removeItem("ref_from");
-      loadUser();
-    }).catch(()=>{});
 })();
 
-// watch ad button
-document.getElementById("watchAdBtn").addEventListener("click", async () => {
-  try {
-    // call Monetag SDK; expected function name show_10070523
-    if (typeof window.show_10070523 === "function") {
-      await window.show_10070523();
-    } else {
-      // fallback: open confirm if SDK missing
-      if (!confirm("Ad SDK not loaded — simulate ad watch?")) throw new Error("no ad");
-    }
+// ----------------- API ROUTES -----------------
 
-    // after ad success -> notify server
-    const res = await fetch("/watch-ad", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ userId, name: userName }) });
-    const json = await res.json();
-    if (json.balance !== undefined) {
-      balanceEl.innerText = json.balance;
-      alert(`✅ You earned ${AD_REWARD} points`);
-    } else {
-      alert("⚠️ Coin update failed");
-    }
+// get latest headline
+app.get("/headline", async (req, res) => {
+  try {
+    const r = await pool.query("SELECT text, updated_at FROM headlines ORDER BY updated_at DESC LIMIT 1");
+    res.json(r.rows[0] || { text: "" });
   } catch (err) {
-    console.error(err);
-    alert("Ad failed or skipped");
+    res.status(500).json({ error: "DB error" });
   }
 });
 
-// daily button
-document.getElementById("dailyBtn").addEventListener("click", async () => {
-  const res = await fetch("/claim-daily", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ userId })});
-  const j = await res.json();
-  if (j.ok) { alert(`Daily bonus ${j.bonus} added`); loadUser(); } else alert(j.message || "Failed");
+// admin: set headline
+app.post("/headline", async (req, res) => {
+  const { adminId, text } = req.body;
+  if (Number(adminId) !== ADMIN_ID) return res.status(403).json({ error: "Forbidden" });
+  if (!text || !text.trim()) return res.status(400).json({ error: "Empty text" });
+  await pool.query("INSERT INTO headlines (text) VALUES ($1)", [text]);
+  res.json({ ok: true });
 });
 
-// copy referral
-document.getElementById("referBtn").addEventListener("click", () => {
-  const refLink = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
-  navigator.clipboard.writeText(refLink);
-  alert("Referral link copied — others must open this link to count as referral");
+// register 
+app.post("/register", async (req, res) => {
+  try {
+    const { userId, name, referral } = req.body;
+    if (!userId) return res.status(400).json({ error: "No userId" });
+
+    const existing = await pool.query("SELECT id, referrer FROM users WHERE id = $1", [userId]);
+    if (existing.rowCount === 0) {
+      await pool.query("INSERT INTO users (id, name, balance, referrer) VALUES ($1, $2, 0, $3)", [userId, name || null, referral || null]);
+      if (referral && Number(referral) !== Number(userId)) {
+        await pool.query("UPDATE users SET balance = balance + $1, ref_success = ref_success + 1 WHERE id = $2", [REF_BONUS, referral]);
+      }
+      return res.json({ ok: true, message: "registered" });
+    } else {
+      return res.json({ ok: false, message: "already" });
+    }
+  } catch (err) {
+    res.status(500).json({ error: "server" });
+  }
 });
 
-// withdraw
-document.getElementById("withdrawBtn").addEventListener("click", async () => {
-  const res = await fetch("/withdraw", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ userId })});
-  const j = await res.json();
-  if (j.ok) { alert(`Withdraw requested: ${j.amount_points} points = ${j.amount_taka}৳`); loadUser(); }
-  else alert(j.message || "Withdraw failed");
+// track referral link clicks
+app.post("/ref-click", async (req, res) => {
+  try {
+    const { refId } = req.body;
+    if (!refId) return res.status(400).json({ error: "No refId" });
+    await pool.query("INSERT INTO users(id) VALUES($1) ON CONFLICT (id) DO NOTHING", [refId]);
+    await pool.query("UPDATE users SET ref_clicks = ref_clicks + 1 WHERE id = $1", [refId]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: "server" });
+  }
 });
 
-// Admin: load data & approve withdraws & set headline
-document.getElementById("loadAdmin")?.addEventListener("click", async () => {
-  const r = await fetch(`/admin-data?adminId=${ADMIN_ID}`);
-  if (!r.ok) return alert("Forbidden or server error");
-  const j = await r.json();
-  // show users & withdraws
-  let out = "<h4>Users</h4><pre>";
-  out += j.users.map(u => `ID:${u.id} — ${u.name||'-'} — ${u.balance} pts — clicks:${u.ref_clicks} — success:${u.ref_success}`).join("\n");
-  out += "</pre><h4>Withdraws</h4><pre>";
-  out += j.withdraws.map(w => `WD#${w.id} — user:${w.user_id} — ${w.amount_points} pts — ${w.amount_taka}৳ — status:${w.status}`).join("\n");
-  out += "</pre>";
+// watch-ad -> add ad reward
+app.post("/watch-ad", async (req, res) => {
+  try {
+    const { userId, name, referral } = req.body;
+    if (!userId) return res.status(400).json({ error: "No userId" });
 
-  // generate approve buttons for pending withdraws
-  let approveHtml = "";
-  j.withdraws.forEach(w => {
-    if (w.status === "pending") approveHtml += `<div style="margin:8px 0"><button class="btn approveBtn" data-id="${w.id}">Approve WD#${w.id} (user ${w.user_id})</button></div>`;
-  });
+    await pool.query(
+      `INSERT INTO users (id, name, balance, referrer)
+       VALUES ($1, $2, 0, $3)
+       ON CONFLICT (id) DO UPDATE SET name = COALESCE($2, users.name)`,
+      [userId, name || null, referral || null]
+    );
+    await pool.query("UPDATE users SET balance = balance + $1 WHERE id = $2", [AD_REWARD, userId]);
 
-  document.getElementById("adminOutput").innerHTML = out + approveHtml;
-
-  // attach approve handlers
-  document.querySelectorAll(".approveBtn").forEach(btn => {
-    btn.addEventListener("click", async (e) => {
-      const wid = e.target.getAttribute("data-id");
-      const res = await fetch("/admin/approve-withdraw", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ adminId: ADMIN_ID, withdrawId: Number(wid) })});
-      const j2 = await res.json();
-      if (j2.ok) { alert("Approved"); document.getElementById("loadAdmin").click(); } else alert(j2.message || "Failed");
-    });
-  });
+    const r = await pool.query("SELECT balance FROM users WHERE id = $1", [userId]);
+    res.json({ balance: Number(r.rows[0].balance) });
+  } catch (err) {
+    res.status(500).json({ error: "server" });
+  }
 });
 
-// set headline
-document.getElementById("setHeadlineBtn")?.addEventListener("click", async () => {
-  const txt = document.getElementById("headlineInput").value.trim();
-  if (!txt) return alert("Headline লিখুন");
-  const r = await fetch("/headline", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ adminId: ADMIN_ID, text: txt })});
-  const j = await r.json();
-  if (j.ok) { alert("Headline set"); loadHeadline(); } else alert(j.error || "Failed");
+// claim daily bonus
+app.post("/claim-daily", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: "No userId" });
+    await pool.query("INSERT INTO users (id) VALUES ($1) ON CONFLICT (id) DO NOTHING", [userId]);
+
+    const r = await pool.query("SELECT last_daily FROM users WHERE id = $1", [userId]);
+    const lastDaily = r.rows[0]?.last_daily;
+    const now = new Date();
+    if (lastDaily && now - new Date(lastDaily) < 24 * 60 * 60 * 1000) {
+      return res.json({ ok: false, message: "Daily bonus already claimed" });
+    }
+
+    await pool.query("UPDATE users SET balance = balance + $1, last_daily = NOW() WHERE id = $2", [DAILY_BONUS, userId]);
+    res.json({ ok: true, bonus: DAILY_BONUS });
+  } catch (err) {
+    res.status(500).json({ error: "server" });
+  }
 });
 
-// refresh headline
-document.getElementById("refreshHeadline")?.addEventListener("click", loadHeadline);
+// withdraw request
+app.post("/withdraw", async (req, res) => {
+  try {
+    const { userId } = req.body; 
+    if (!userId) return res.status(400).json({ error: "No userId" });
 
-</script>
-</body>
-</html>
+    const r = await pool.query("SELECT balance FROM users WHERE id = $1", [userId]);
+    const balance = r.rows[0]?.balance || 0;
+    if (balance < WITHDRAW_POINTS) return res.json({ ok: false, message: `Minimum ${WITHDRAW_POINTS} points required` });
+
+    const taka = pointsToTaka(WITHDRAW_POINTS);
+    await pool.query(
+      "INSERT INTO withdraws (user_id, amount_points, amount_taka, status) VALUES ($1, $2, $3, 'pending')",
+      [userId, WITHDRAW_POINTS, taka]
+    );
+
+    res.json({ ok: true, amount_points: WITHDRAW_POINTS, amount_taka: taka, message: "Withdraw request submitted" });
+  } catch (err) {
+    res.status(500).json({ error: "server" });
+  }
+});
+
+// get user info (dashboard)
+app.get("/user/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const r = await pool.query("SELECT id, name, balance, ref_clicks, ref_success, last_daily FROM users WHERE id = $1", [id]);
+    if (r.rowCount === 0) return res.json({ id, balance: 0, ref_clicks: 0, ref_success: 0 });
+    res.json(r.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: "server" });
+  }
+});
+
+// admin data (users + withdraws)
+app.get("/admin-data", async (req, res) => {
+  try {
+    const adminId = req.query.adminId;
+    if (Number(adminId) !== ADMIN_ID) return res.status(403).json({ error: "Forbidden" });
+
+    const users = (await pool.query("SELECT id, name, balance, ref_clicks, ref_success, created_at FROM users ORDER BY balance DESC")).rows;
+    const withdraws = (await pool.query("SELECT * FROM withdraws ORDER BY created_at DESC")).rows;
+    res.json({ users, withdraws });
+  } catch (err) {
+    res.status(500).json({ error: "server" });
+  }
+});
+
+// admin approve withdraw
+app.post("/admin/approve-withdraw", async (req, res) => {
+  try {
+    const { adminId, withdrawId } = req.body;
+    if (Number(adminId) !== ADMIN_ID) return res.status(403).json({ error: "Forbidden" });
+
+    const r = await pool.query("SELECT * FROM withdraws WHERE id = $1", [withdrawId]);
+    if (r.rowCount === 0) return res.status(404).json({ error: "Withdraw not found" });
+    const wd = r.rows[0];
+    if (wd.status !== "pending") return res.json({ ok: false, message: "Already processed" });
+
+    await pool.query("UPDATE users SET balance = balance - $1 WHERE id = $2", [wd.amount_points, wd.user_id]);
+    await pool.query("UPDATE withdraws SET status = 'approved' WHERE id = $1", [withdrawId]);
+
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: "server" });
+  }
+});
+
+// start
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
