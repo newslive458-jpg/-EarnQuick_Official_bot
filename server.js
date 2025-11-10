@@ -4,14 +4,13 @@ import cors from "cors";
 import pool from "./db.js"; 
 import path from "path";
 import { fileURLToPath } from "url";
-// import { pointsToTaka } from './utils.js'; // যদি utils.js থাকে, না থাকলে পরের ফাংশনটি ব্যবহার করুন
 
 const app = express();
 
 // CORS কনফিগারেশন: আপনার ব্লগার ডোমেইন এবং Render ডোমেইন উভয়কে অনুমোদন করা হয়েছে
 const allowedOrigins = [
-    'https://earnquickofficial.blogspot.com', // পুরাতন ব্লগার
-    'https://earnquick-new-blog.blogspot.com', // নতুন ব্লগার
+    'https://earnquick-official.blogspot.com', // পুরাতন ব্লগার
+    'https://earnquick-new-blog.blogspot.com', // নতুন ব্লগার URL (যেটি আপনি BotFather-এ সেট করেছেন)
     'https://earnquick-official-bot.onrender.com'
 ];
 app.use(cors({
@@ -27,15 +26,15 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Path কনফিগারেশন (যদিও এই অ্যাপে প্রয়োজন নেই, তবুও রাখলাম)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Path কনফিগারেশন (এটির প্রয়োজন নেই)
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
-// ----------------- নতুন রুট: সার্ভারকে ফ্রন্টএন্ড ফাইল লোড করা থেকে আটকানো -----------------
-// এই রুটটি নিশ্চিত করে যে '/' পাথে কোনো HTML ফাইল লোড হবে না। 
+// ----------------- রুট: ফ্রন্টএন্ড ফাইল লোড করা থেকে আটকানো (গুরুত্বপূর্ণ) -----------------
+// আপনার পূর্বের Render error ছিল /public/index.html খুঁজে না পাওয়া নিয়ে। 
+// যেহেতু ফ্রন্টএন্ড ব্লগারে আছে, তাই সার্ভারকে / পাথে শুধুমাত্র একটি বার্তা দিতে হবে।
 app.get("/", (req, res) => {
-    // Render সার্ভারের মূল URL এ কেউ অ্যাক্সেস করলে এই মেসেজটি দেখাবে
-    res.send("EarnQuick API Server is running. Access the Mini App via Telegram/BlogSpot.");
+    res.send("EarnQuick API Server is running. Access the Mini App via Telegram.");
 });
 // -----------------------------------------------------------------------------------------
 
@@ -99,10 +98,9 @@ function pointsToTaka(points) {
   }
 })();
 
-// ----------------- API ROUTES (এখানে আপনার সব API রুট থাকবে) -----------------
-// **আপনার পূর্ববর্তী কোড থেকে এই সব API রুটগুলি যোগ করতে হবে (যেমন: /register, /watch-ad, /claim-daily, /withdraw, /ref-click, /headline)**
-// আমি শুধুমাত্র /user/:id রুটটি রাখছি কারণ এটি আপনি দিয়েছেন
+// ----------------- API ROUTES START -----------------
 
+// রুট ১: ইউজার ডেটা
 app.get("/user/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -114,6 +112,7 @@ app.get("/user/:id", async (req, res) => {
     }
 });
 
+// **এখানে আপনার অন্যান্য রুটগুলি যুক্ত করুন: /register, /watch-ad, /claim-daily, /withdraw, /ref-click, /headline (GET রিকোয়েস্ট)**
 
 // ----------------- ADMIN PANEL ROUTES START -----------------
 
@@ -158,7 +157,8 @@ app.post("/headline", async (req, res) => {
   const { adminId, text } = req.body;
   if (Number(adminId) !== ADMIN_ID) return res.status(403).json({ error: "Forbidden" });
   if (!text || !text.trim()) return res.status(400).json({ error: "Empty text" });
-  // হেডলাইন টেবিল সবসময় একটিই লাইন রাখবে
+  
+  // শুধুমাত্র একটি হেডলাইন রাখার জন্য, পুরনোটি মুছে নতুনটি ইনসার্ট করা হলো
   await pool.query("DELETE FROM headlines");
   await pool.query("INSERT INTO headlines (text) VALUES ($1)", [text]);
   res.json({ ok: true });
