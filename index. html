@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'/>
+    <title>EarnQuick Official</title>
+    
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Monetag SDK (replace ZONE_ID) -->
+    <script src='//libtl.com/sdk.js' data-zone='10070523' data-sdk='show_10070523'></script>
+
+    <script>
+        window.API_URL = "https://your-render-server.onrender.com"; 
+        window.ADMIN_ID = 8145444675;
+        window.WITHDRAW_POINTS = 5000;
+    </script>
+
+    <style>
+        /* Basic Professional UI */
+        body { font-family: Arial; margin: 0; background:#1a1a1a; color:#fff; display:flex; flex-direction:column; align-items:center;}
+        .container{width:100%; max-width:450px; padding:20px;}
+        .header{background:#2b2b2b;padding:15px;border-radius:8px;text-align:center;margin-bottom:20px;}
+        .header h1{margin:0;font-size:1.5em;color:#fdd835;}
+        .section{background:#2b2b2b;padding:15px;border-radius:8px;margin-bottom:15px;}
+        .balance{font-size:2.5em;color:#00e676;margin:10px 0;}
+        .button{display:block;width:100%;padding:12px;margin-top:10px;border:none;border-radius:6px;font-weight:bold;cursor:pointer;}
+        .btn-ad{background:#2196F3;color:#fff;}
+        .btn-withdraw{background:#FF9800;color:#fff;}
+        .btn-daily{background:#00E5FF;color:black;}
+        .error-message{color:red;background:#331111;padding:10px;border-radius:4px;margin-bottom:15px;text-align:center;}
+        table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.8em;}
+        th, td{border:1px solid #444;padding:8px;text-align:left;}
+        th{background:#444;color:#eee;}
+        .pending{color:#FFEB3B;}
+        .approved{color:#4CAF50;}
+        .rejected{color:#F44336;}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div id="error-message" class="error-message" style="display:none;"></div>
+
+    <div class="header">
+        <h1>💵 EarnQuick Official</h1>
+    </div>
+
+    <div id="headline-display" class="section" style="color:#fdd835;">
+        <p id="headline-text-display">হেডলাইন লোড হচ্ছে...</p>
+    </div>
+
+    <div id="admin-panel-toggle" style="display:none;" class="section">
+        <h2>👑 অ্যাডমিন প্যানেল</h2>
+        <button class="button btn-ad" onclick="toggleAdminView(false)">ইউজার ড্যাশবোর্ড দেখুন</button>
+    </div>
+
+    <div id="user-dashboard">
+        <div class="section">
+            <h2>ব্যালেন্স</h2>
+            <p id="balance" class="balance">... লোড হচ্ছে ...</p>
+            <p>টাকায়: <span id="taka-equivalent">...</span></p>
+        </div>
+
+        <div class="section">
+            <h2>অ্যাকশন</h2>
+            <button id="ad-button" class="button btn-ad" onclick="watchAd()">💰 বিজ্ঞাপন দেখুন (10 পয়েন্ট)</button>
+            <button id="daily-button" class="button btn-daily" onclick="claimDaily()">☀️ দৈনিক বোনাস (10 পয়েন্ট)</button>
+            <button class="button btn-withdraw" onclick="showWithdrawForm()">💸 উইথড্র করুন</button>
+        </div>
+
+        <div class="section">
+            <h2>রেফারেল</h2>
+            <p>রেফারেল লিংক: <span id="ref-link">...</span></p>
+            <p>ক্লিক: <span id="ref-clicks">0</span> | সফল রেফার: <span id="ref-success">0</span></p>
+        </div>
+
+        <div id="withdraw-form" class="section" style="display:none;">
+            <h3>💸 উইথড্র রিকোয়েস্ট</h3>
+            <input type="text" id="withdraw-method" placeholder="বিকাশ / নগদ / রকেট / USDT" class="button" style="text-align:left; background:#333; color:white;"/>
+            <input type="text" id="withdraw-number" placeholder="আপনার নম্বর / USDT Wallet" class="button" style="text-align:left; background:#333; color:white;"/>
+            <button class="button btn-withdraw" onclick="sendWithdrawRequest()">রিকোয়েস্ট পাঠান</button>
+        </div>
+    </div>
+
+    <div id="admin-panel" style="display:none;">
+        <h2>👑 অ্যাডমিন প্যানেল</h2>
+        <button class="button btn-withdraw" onclick="toggleAdminView(true)">ইউজার ড্যাশবোর্ড দেখুন</button>
+
+        <div class="section">
+            <h3>📈 মনিটরিং স্ট্যাটাস</h3>
+            <p>মোট ইউজার: <span id="admin-total-users">0</span></p>
+            <p>পেন্ডিং উইথড্র: <span id="admin-pending-withdraws">0</span></p>
+            <p>মোট পয়েন্ট: <span id="admin-total-balance">0</span></p>
+            <p>মোট টাকা: <span id="admin-total-taka">0</span></p>
+        </div>
+
+        <div class="section">
+            <h3>📢 হেডলাইন পরিবর্তন</h3>
+            <input type="text" id="headline-input" placeholder="নতুন হেডলাইন লিখুন..." class="button" style="text-align:left; background:#333; color:white;"/>
+            <button class="button btn-ad" onclick="setHeadline()">হেডলাইন সেট করুন</button>
+        </div>
+
+        <div class="section">
+            <h3>📝 উইথড্র রিকোয়েস্ট</h3>
+            <table id="withdraw-table">
+                <thead>
+                    <tr><th>ID</th><th>ইউজার ID</th><th>পয়েন্ট</th><th>স্ট্যাটাস</th><th>অ্যাকশন</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script src="app.js"></script> <!-- আপনার সকল JS লজিক app.js বা inline থাকতে পারে -->
+</body>
+</html>
