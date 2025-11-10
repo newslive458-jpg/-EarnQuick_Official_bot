@@ -1,4 +1,4 @@
-// server.js (API Fetch সমস্যা সমাধানের জন্য চূড়ান্ত সংশোধিত কোড)
+// server.js (চূড়ান্ত সংশোধিত কোড)
 import express from "express";
 import cors from "cors";
 import pool from "./db.js"; 
@@ -12,12 +12,11 @@ app.use(cors());
 
 app.use(express.json());
 
-// Path configuration (Not needed, but kept for context)
+// Path configuration 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ----------------- Root Route: Prevent Front-end File Search -----------------
-// This ensures the server does not look for index.html (which is on Blogger)
 app.get("/", (req, res) => {
     res.send("EarnQuick API Server is running. Access the Mini App via Telegram.");
 });
@@ -38,6 +37,7 @@ function pointsToTaka(points) {
 // ----- Initialize tables if not exist -----
 (async () => {
   try {
+    // If pool.query throws an error here, it means the DATABASE_URL is wrong.
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id BIGINT PRIMARY KEY,
@@ -80,8 +80,8 @@ function pointsToTaka(points) {
     }
     console.log("Database initialized successfully.");
   } catch (err) {
-    console.error("DB init error: Database connection failed.", err.message);
-    // process.exit(1); // Keep the server running even if init fails (though usually it indicates a serious error)
+    console.error("DB init error: DATABASE CONNECTION FAILED. Check DATABASE_URL in Render.", err.message);
+    // Continue server boot even if DB is down, to diagnose externally
   }
 })();
 
@@ -95,7 +95,8 @@ app.get("/user/:id", async (req, res) => {
         if (result.rowCount === 0) return res.status(404).json({ error: "User not found" });
         res.json(result.rows[0]);
     } catch (err) {
-        res.status(500).json({ error: "DB error" });
+        console.error("User Data DB Error:", err);
+        res.status(500).json({ error: "server error fetching user data" }); // Changed for better logging
     }
 });
 
@@ -252,6 +253,7 @@ app.get("/admin-data", async (req, res) => {
     const adminId = req.query.adminId;
     if (Number(adminId) !== ADMIN_ID) return res.status(403).json({ error: "Forbidden: You are not the admin." });
 
+    // Use transactions/multiple queries to fetch all data
     const users = (await pool.query("SELECT id, name, balance, ref_clicks, ref_success, created_at FROM users ORDER BY balance DESC")).rows;
     const withdraws = (await pool.query("SELECT id, user_id, amount_points, amount_taka, status, method, number, created_at FROM withdraws ORDER BY created_at DESC")).rows;
 
@@ -272,8 +274,9 @@ app.get("/admin-data", async (req, res) => {
         }
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "server error fetching admin data" });
+    console.error("ADMIN DATA FETCH ERROR: ", err);
+    // This is the error message being sent to the front-end
+    res.status(500).json({ error: "server error fetching admin data" }); 
   }
 });
 
@@ -289,7 +292,7 @@ app.post("/headline", async (req, res) => {
   res.json({ ok: true });
 });
 
-// admin: update withdraw status (and grant money on approval, if needed)
+// admin: update withdraw status
 app.post("/withdraw/status", async (req, res) => {
     try {
         const { adminId, withdrawId, status } = req.body;
