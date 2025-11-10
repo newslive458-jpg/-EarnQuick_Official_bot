@@ -1,5 +1,4 @@
-// db.js (চূড়ান্ত: Render/PostgreSQL সংযোগের জন্য)
-
+// db.js
 import pg from "pg";
 
 const connectionString = process.env.DATABASE_URL;
@@ -10,17 +9,13 @@ if (!connectionString) {
 
 const pool = new pg.Pool({
   connectionString: connectionString,
-  // Render এবং ক্লাউড হোস্টিং এর জন্য SSL বাধ্যতামূলক।
-  ssl: {
-    rejectUnauthorized: false, 
-  },
+  ssl: { rejectUnauthorized: false },
 });
 
-// সংযোগ সফল হয়েছে কিনা তা নিশ্চিত করার জন্য একটি ছোট টেস্ট রান (ঐচ্ছিক কিন্তু সহায়ক)
+// Test connection
 pool.query('SELECT 1 + 1 AS result', (err, res) => {
     if (err) {
         console.error('Database connection test failed:', err.stack);
-        console.error('ACTION REQUIRED: Please check your DATABASE_URL in Render Environment Variables.');
     } else {
         console.log('Database connection successful. Test result:', res.rows[0].result);
     }
