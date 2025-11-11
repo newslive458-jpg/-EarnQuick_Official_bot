@@ -1,106 +1,81 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>EarnQuick Official Mini App</title>
-
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="//libtl.com/sdk.js" data-zone="10070523" data-sdk="show_10070523"></script>
-
-  <style>
-    body {
-      font-family: "Noto Sans Bengali", sans-serif;
-      text-align: center;
-      background: #f7f9fb;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: linear-gradient(90deg, #0077ff, #00c3ff);
-      color: white;
-      padding: 15px 0;
-      font-weight: bold;
-      font-size: 20px;
-      position: relative;
-      overflow: hidden;
-    }
-    .headline {
-      animation: scroll-left 15s linear infinite;
-      white-space: nowrap;
-      display: inline-block;
-      position: absolute;
-      width: 100%;
-      left: 100%;
-    }
-    @keyframes scroll-left {
-      0% { left: 100%; }
-      100% { left: -100%; }
-    }
-    .container {
-      padding: 20px;
-    }
-    button {
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 20px;
-      font-size: 16px;
-      margin-top: 15px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover { background: #0056b3; }
-    .footer {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #555;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EarnQuick Mini App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="//libtl.com/sdk.js" data-zone="10070523"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <div class="headline">💸 নিশ্চিত উপার্জন, নিশ্চিত উইথড্র। এখন প্রতি রেফারে ২৫০ পয়েন্ট বোনাস! আপনার সক্রিয়তা বজায় রাখুন।</div>
-  </header>
+<div class="headline">💸 নিশ্চিত উপার্জন, নিশ্চিত উইথড্র! প্রতি রেফারে ২৫০ পয়েন্ট বোনাস।</div>
 
-  <div class="container">
-    <h2>EarnQuick Mini App</h2>
-    <p>আপনার পয়েন্ট: <strong id="points">0</strong></p>
-    <p>দেখা বিজ্ঞাপন: <strong id="adsWatched">0</strong></p>
+<div class="user-info">
+ইউজার আইডি: <span id="userId">8320840106</span><br>
+পয়েন্ট: <span id="points">0</span><br>
+দেখানো এড: <span id="adsWatched">0</span><br>
+রেফার: <span id="refCount">0</span>
+</div>
 
-    <button onclick="watchAd()">🎥 বিজ্ঞাপন দেখুন</button>
+<button onclick="watchAd()">বিজ্ঞাপন দেখুন (10 কয়েন)</button>
+<button onclick="withdraw()">উইথড্র</button>
+<button onclick="addReferral()">রেফারেল যোগ করুন</button>
+<button onclick="toggleTerms()">শর্তাবলী দেখুন</button>
 
-    <div style="margin-top: 25px;">
-      <h3>💰 রেফারেল সিস্টেম</h3>
-      <p>প্রতি রেফারে <b>২৫০ কয়েন</b> বোনাস!</p>
-    </div>
+<div id="terms" style="display:none;">
+<p>১. বয়স ১৮+। ২. একাধিক অ্যাকাউন্ট নিষিদ্ধ। ৩. বট/স্ক্রিপ্ট ব্যবহার নিষিদ্ধ। ৪. 5000 পয়েন্ট = 20 টাকা। ৫. সঠিক তথ্য না দিলে বাতিল। ৬. শর্ত লঙ্ঘন করলে অ্যাকাউন্ট স্থগিত।</p>
+</div>
 
-    <div class="footer">
-      <a href="#" onclick="alert(terms)">📜 Terms & Conditions</a>
-    </div>
-  </div>
+<div class="ad-container">
+<script type="text/javascript">
+    atOptions = { 'key':'00605022df81b880d400151bfc7c2185','format':'iframe','height':90,'width':728,'params':{}};
+</script>
+<script type="text/javascript" src="//brillianceremisswhistled.com/00605022df81b880d400151bfc7c2185/invoke.js"></script>
+</div>
 
-  <script>
-    const terms = `EarnQuick Mini App শর্তাবলী:
-১️⃣ একাধিক অ্যাকাউন্ট নিষিদ্ধ
-২️⃣ 5000 পয়েন্টে উইথড্র করা যাবে (সকাল ৬টা–রাত ৮টা)
-৩️⃣ বট ব্যবহার করলে অ্যাকাউন্ট বাতিল`;
-
-    let points = 0;
-    let adsWatched = 0;
-
-    function watchAd() {
-      show_10070523().then(() => {
-        alert('✅ বিজ্ঞাপন দেখা সম্পন্ন!');
+<script>
+let points = 0, adsWatched = 0, refCount = 0;
+function watchAd() {
+    show_10070523().then(() => {
         points += 10;
-        adsWatched++;
-        document.getElementById('points').innerText = points;
-        document.getElementById('adsWatched').innerText = adsWatched;
-      }).catch(() => {
-        alert('⚠️ বিজ্ঞাপন সম্পূর্ণ দেখা হয়নি!');
-      });
-    }
-  </script>
+        adsWatched += 1;
+        document.getElementById("points").innerText = points;
+        document.getElementById("adsWatched").innerText = adsWatched;
+        fetch('/reward', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({userId: document.getElementById("userId").innerText, points: 10})
+        });
+        alert('10 কয়েন যোগ হয়েছে!');
+    }).catch(()=>alert('এড দেখা হয়নি, পয়েন্ট হয়নি।'));
+}
+
+function withdraw() {
+    fetch('/withdraw', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({userId: document.getElementById("userId").innerText})
+    }).then(res=>res.json()).then(data=>alert(data.message));
+}
+
+function addReferral() {
+    refCount += 1;
+    points += 250;
+    document.getElementById("refCount").innerText = refCount;
+    document.getElementById("points").innerText = points;
+    fetch('/referral', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({referrerId: document.getElementById("userId").innerText})
+    });
+    alert('রেফারেল যোগ হয়েছে ২৫০ পয়েন্ট!');
+}
+
+function toggleTerms(){
+    const t = document.getElementById("terms");
+    t.style.display = t.style.display==='none'?'block':'none';
+}
+</script>
 </body>
 </html>
