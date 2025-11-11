@@ -1,0 +1,13 @@
+{
+  "name": "earnquick_official_bot",
+  "version": "1.0.0",
+  "description": "EarnQuick Telegram Mini App + Monetag Reward Ads System",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
