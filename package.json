@@ -1,14 +1,13 @@
 {
-  "name": "EarnQuick_Official_bot",
+  "name": "earnquick_official_bot",
   "version": "1.0.0",
-  "description": "EarnQuick Telegram Mini App with Ads, Rewards, Referral & Withdraw System",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "pg": "^8.11.0",
+    "pg": "^8.12.0",
     "dotenv": "^16.3.1",
     "body-parser": "^1.20.2"
   }
