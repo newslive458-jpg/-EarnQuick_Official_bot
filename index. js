@@ -1,70 +1,66 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const pool = require('./utils/db');
-
+const { Pool } = require('pg');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// ✅ Home Route (Mini App)
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
-// ✅ Reward API (Monetag Ad watched)
-app.post('/reward', async (req, res) => {
-    const { userId, points } = req.body;
-    if (!userId || !points) return res.status(400).send('Invalid data');
-
-    try {
-        const user = await pool.query("SELECT * FROM users WHERE telegram_id=$1", [userId]);
-        if(user.rows.length === 0){
-            await pool.query("INSERT INTO users (telegram_id, points, ads_watched) VALUES ($1, $2, $3)", [userId, points, 1]);
-        } else {
-            await pool.query("UPDATE users SET points = points + $1, ads_watched = ads_watched + 1 WHERE telegram_id=$2", [points, userId]);
-        }
-        res.json({ success: true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('DB Error');
-    }
+// ইউজার পয়েন্ট দেখানো
+app.get('/user/:id', async (req, res) => {
+  const id = req.params.id;
+  const result = await pool.query('SELECT coins, ads_watched, referrals FROM users WHERE telegram_id=$1', [id]);
+  if(result.rows.length > 0) res.json(result.rows[0]);
+  else res.json({coins:0, ads_watched:0, referrals:0});
 });
 
-// ✅ Referral API
-app.post('/referral', async (req, res) => {
-    const { referrerId } = req.body;
-    if(!referrerId) return res.status(400).send('Invalid data');
-
-    try {
-        await pool.query("UPDATE users SET points = points + 250, referrals = referrals + 1 WHERE telegram_id=$1", [referrerId]);
-        res.json({ success: true });
-    } catch(err) {
-        console.error(err);
-        res.status(500).send('DB Error');
-    }
+// এড দেখার পর রিওয়ার্ড
+app.post('/watch_ad', async (req,res)=>{
+  const { telegram_id } = req.body;
+  const reward = 10;
+  await pool.query(`
+    INSERT INTO users(telegram_id, coins, ads_watched, referrals)
+    VALUES($1,$2,1,0)
+    ON CONFLICT(telegram_id)
+    DO UPDATE SET coins=users.coins+$2, ads_watched=users.ads_watched+1
+  `, [telegram_id, reward]);
+  res.json({success:true, coins_added:reward});
 });
 
-// ✅ Withdraw API
-app.post('/withdraw', async (req, res) => {
-    const { userId } = req.body;
-    if(!userId) return res.status(400).send('Invalid data');
-
-    try {
-        const user = await pool.query("SELECT points FROM users WHERE telegram_id=$1", [userId]);
-        if(user.rows[0].points >= 5000){
-            await pool.query("UPDATE users SET points = points - 5000 WHERE telegram_id=$1", [userId]);
-            res.json({ success: true, message: "Withdraw requested successfully!" });
-        } else {
-            res.json({ success: false, message: "Minimum 5000 points required." });
-        }
-    } catch(err) {
-        console.error(err);
-        res.status(500).send('DB Error');
-    }
+// রেফারেল
+app.post('/referral', async(req,res)=>{
+  const { telegram_id, ref_code } = req.body;
+  const reward = 250;
+  const user = await pool.query('SELECT * FROM users WHERE telegram_id=$1', [telegram_id]);
+  if(user.rows.length===0){
+    await pool.query('INSERT INTO users(telegram_id, coins, ads_watched, referrals) VALUES($1,0,0,0)', [telegram_id]);
+    await pool.query('UPDATE users SET coins=coins+$1 WHERE telegram_id=$2',[reward,ref_code]);
+    res.json({success:true, reward_given:reward});
+  } else res.json({success:false, msg:'Already joined'});
 });
 
-// ✅ Start Server
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// উইথড্র
+app.post('/withdraw', async(req,res)=>{
+  const { telegram_id, method, account } = req.body;
+  const user = await pool.query('SELECT coins FROM users WHERE telegram_id=$1', [telegram_id]);
+  if(user.rows.length>0 && user.rows[0].coins >= 5000){
+    await pool.query('UPDATE users SET coins=coins-5000 WHERE telegram_id=$1',[telegram_id]);
+    res.json({success:true, msg:`5000 Coins withdrawn to ${method}`});
+  } else res.json({success:false, msg:'Not enough coins'});
+});
+
+// শর্তাবলী
+app.get('/terms', (req,res)=>{
+  res.sendFile(__dirname + '/public/terms.html');
+});
+
+app.listen(port, ()=>{
+  console.log(`Server running at http://localhost:${port}`);
+});
