@@ -9,15 +9,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Static public folder serve করা
+// public ফোল্ডার serve করা
 app.use(express.static(path.join(__dirname, "public")));
 
-// Root path -> index.html দেখাবে
+// Root path এ গেলে index.html দেখাবে
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Server চালু হবে
 app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`✅ EarnQuick Official running on port ${PORT}`);
 });
