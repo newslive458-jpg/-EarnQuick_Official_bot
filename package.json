@@ -1,14 +1,16 @@
 {
-  "name": "earnquick_official_bot",
+  "name": "earnquick-official-bot",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Telegram Mini App Backend",
+  "main": "server.js",  <-- নিশ্চিত করুন যে এটি server.js
+  "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js",  <-- এটিকে node server.js-এ পরিবর্তন করুন
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "pg": "^8.12.0",
-    "dotenv": "^16.3.1",
-    "body-parser": "^1.20.2"
+    "pg": "^8.11.3"
   }
 }
